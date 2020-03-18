@@ -33,7 +33,7 @@ public class AlienDictionary {
 	}
 	
 	public WordEnhanced translateWordWild(String alienWord) {
-		alienWord = alienWord.substring(0, 1).toUpperCase()+alienWord.substring(1, alienWord.length()).toLowerCase();
+		alienWord.toLowerCase();
 		int index = alienWord.indexOf("?");
 		String a1 = alienWord.substring(0, index);
 		String a2 = alienWord.substring(index+1, alienWord.length());
