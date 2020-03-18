@@ -5,7 +5,7 @@ import java.util.ResourceBundle;
 import java.util.*;
 
 import it.polito.tdp.alien.model.AlienDictionary;
-import it.polito.tdp.alien.model.Word;
+import it.polito.tdp.alien.model.WordEnhanced;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -43,7 +43,8 @@ public class FXMLController {
 
     @FXML
     void doTranslate(ActionEvent event) {
-    	boolean isAdd = false;
+    	boolean nuova = false;
+    	boolean wild = false;
     	String text = txtTradurre.getText();
     	txtTradotto.clear();
     	
@@ -54,36 +55,45 @@ public class FXMLController {
     		return;
     	}
     
-    	String pattern = "[A-Za-z ]*";
+    	String pattern = "[A-Za-z ?]*";
     	if(!text.matches(pattern)) 
     	{
-    		txtTradotto.appendText("Parametro non valido, gli unici caratteri ammessi sono [A-Za-z]\n");
+    		txtTradotto.appendText("Parametro non valido, gli unici caratteri ammessi sono [A-Za-z ?]\n");
     		return;
     	}
     	
     	String array[] = text.split(" ");
-    	if(array.length > 2) 
-    	{
-    		txtTradotto.appendText("Input non valido, inserire massimo due parametri\n");
+    	
+    	if(text.indexOf("?") != text.lastIndexOf("?")) {
+    		txtTradotto.appendText("Input non valido, è ammesso un solo ?\n");
     		return;
     	}
+    	
+    	if(text.contains("?"))
+    		wild = true;
+    	
+    	if(wild && !array[0].contains("?")) {
+    		txtTradotto.appendText("Input non valido, ? ammesso solo nell'alienWord\n");
+    		return;
+    	}
+    	
+    	if(array.length>1) 
+    		nuova = true;
+    	
+    	if(nuova && wild) {
+    		txtTradotto.appendText("Input non valido, impossibile aggiungere elementi contenenti ?\n");
+    		return;
+    	}
+    	
     	//Fine controllo
     	
     	String alienWord = array[0];
-    	String translation = null;
     	
-    	if(array.length == 1)
-    		isAdd = false;
-    	else 
-    	{
-    		isAdd = true;
-    		translation = array[1];
-    	}
-    	
-    	if(isAdd) 
+    	if(nuova) 
     	{
     		try {
-    			this.model.addWord(alienWord, translation);
+    			for(int i=1; i<array.length; i++)
+    				this.model.addWord(alienWord, array[i]);
     			txtTradotto.appendText("Nuovo elemento aggiunto al dizionario\n");
     		} catch(IllegalStateException ise) {
     			txtTradotto.appendText(ise.getMessage());
@@ -91,28 +101,24 @@ public class FXMLController {
     	}
     	else
     	{
-    		Word result = this.model.translateWord(alienWord);
-    		if(result != null)
-    			txtTradotto.appendText(result.getTraduzione()+"\n");
+    		if(!wild)
+    		{
+    			WordEnhanced result = this.model.translateWord(alienWord);
+        		if(result != null)
+        			txtTradotto.appendText(result.toString()+"\n");
+        		else
+        			txtTradotto.appendText("Parola non ancora presente nel dizionario\n");	
+    		}
     		else
-    			txtTradotto.appendText("Parola non ancora presente nel dizionario\n");	
+    		{
+    			WordEnhanced result = this.model.translateWordWild(alienWord);
+        		if(result != null)
+        			txtTradotto.appendText(result.toString()+"\n");
+        		else
+        			txtTradotto.appendText("Parola non ancora presente nel dizionario oppure più parole aliene potrebbero corrispondere ad essa\n");	
+    		}
     	}
     	
-    	/*
-    	String pt = txtTradurre.getText();
-    	String p = "";
-    	String t = "";
-    	if(pt.contains(" "))
-    	{
-    		StringTokenizer st = new StringTokenizer(pt, " ");
-    		p = st.nextToken().trim();
-    		t = st.nextToken().trim();
-    	}
-		if(t.compareTo("")!=0)
-			model.addWord(p, t);
-		else
-			txtTradotto.appendText(""+model.translateWord(p)+"\n");
-    	 */
     }
 
     @FXML
